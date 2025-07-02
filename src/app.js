@@ -21,6 +21,22 @@ app.get("/books", async (req, res) => {
   }
 });
 
+app.get("/books/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const book = await Book.findOne({ where: { id: id } });
+
+    if (book) {
+      return res.status(200).json(book);
+    }
+    return res.status(404).json({ message: "Book not found" });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: error.message });
+  }
+});
+
 app.post("/books", async (req, res) => {
   const { title, author, year } = req.body;
   if (!title || !author || !year) {
@@ -28,6 +44,51 @@ app.post("/books", async (req, res) => {
   }
   const book = await Book.create({ title, author, year });
   res.status(201).json({ message: "Book was successfully created", book });
+});
+
+app.put("/books/:id", async (req, res) => {
+  const { id } = req.params;
+  const { title, author, year } = req.body;
+  if (!title || !author || !year) {
+    res.status(404).json({ message: "All fields are required" });
+  }
+
+  try {
+    const [updated] = await Book.update(
+      { title, author, year },
+      {
+        where: { id: id },
+      }
+    );
+    if (updated) {
+      const updatedBook = await Book.findOne({ where: { id: id } });
+      return res
+        .status(200)
+        .json({ message: "Book updated successfully", book: updatedBook });
+    }
+    throw new Error("Book not found");
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: error.message });
+  }
+});
+
+app.delete("/books/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const deleted = await Book.destroy({
+      where: { id: id },
+    });
+
+    if (deleted) {
+      return res.status(204).send();
+    }
+    throw new Error("Book not found");
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: error.message });
+  }
 });
 
 app.listen(PORT, async () => {
