@@ -21,6 +21,15 @@ app.get("/books", async (req, res) => {
   }
 });
 
+app.post("/books", async (req, res) => {
+  const { title, author, year } = req.body;
+  if (!title || !author || !year) {
+    res.status(404).json({ message: "All fields are required" });
+  }
+  const book = await Book.create({ title, author, year });
+  res.status(201).json({ message: "Book was successfully created", book });
+});
+
 app.listen(PORT, async () => {
   try {
     await sequelize.authenticate();
